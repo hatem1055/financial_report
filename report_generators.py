@@ -7,6 +7,13 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
 import matplotlib.pyplot as plt
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER
+import io
 
 from visualization import VisualizationEngine
 
@@ -747,6 +754,165 @@ class HTMLReportGenerator(ReportGenerator):
         """
         
         return html
+
+
+class PDFReportGenerator(ReportGenerator):
+    """Generates comprehensive PDF reports with larger charts."""
+    
+    def __init__(self):
+        self.viz_engine = VisualizationEngine()
+    
+    def generate(self, analyzer, output_path="financial_report.pdf"):
+        """Generate comprehensive PDF report with larger charts."""
+        # Perform analysis
+        all_time_results = analyzer.analyze_all_time()
+        monthly_results = analyzer.analyze_by_period('month')
+        yearly_results = analyzer.analyze_by_period('year')
+        
+        # Create document
+        doc = SimpleDocTemplate(output_path, pagesize=A4)
+        styles = getSampleStyleSheet()
+        story = []
+        
+        # Custom styles
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            spaceAfter=30,
+            textColor=colors.darkblue,
+            alignment=TA_CENTER
+        )
+        
+        heading_style = ParagraphStyle(
+            'CustomHeading',
+            parent=styles['Heading2'],
+            fontSize=18,
+            spaceAfter=20,
+            textColor=colors.darkgreen
+        )
+        
+        # Title
+        story.append(Paragraph("Financial Analysis Report", title_style))
+        story.append(Paragraph(f"Generated on {datetime.now().strftime('%B %d, %Y')}", styles['Normal']))
+        story.append(Spacer(1, 20))
+        
+        # Executive Summary
+        story.append(Paragraph("Executive Summary", heading_style))
+        
+        # Create summary table
+        summary_data = [
+            ['Metric', 'Amount (EGP)'],
+            ['Total Income', f"{all_time_results['total_income']:,.2f}"],
+            ['Total Spending', f"{all_time_results['total_spending']:,.2f}"],
+            ['Net Balance', f"{all_time_results['net_balance']:,.2f}"],
+            ['Outstanding Lending', f"{all_time_results.get('outstanding_lending', 0):,.2f}"],
+            ['Excess Repayment', f"{all_time_results.get('excess_repayment', 0):,.2f}"]
+        ]
+        
+        summary_table = Table(summary_data, colWidths=[3*inch, 2*inch])
+        summary_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 14),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        
+        story.append(summary_table)
+        story.append(Spacer(1, 30))
+        
+        # Generate and add charts with larger sizes
+        chart_story = self._generate_pdf_charts(all_time_results, monthly_results, yearly_results)
+        story.extend(chart_story)
+        
+        # Build PDF
+        doc.build(story)
+        print(f"📊 PDF report generated: {output_path}")
+        return output_path
+    
+    def _generate_pdf_charts(self, all_time_results, monthly_results, yearly_results):
+        """Generate charts for PDF with larger sizes."""
+        story = []
+        
+        # Chart configurations for larger sizes
+        chart_configs = [
+            ("Normal Spending by Month", "create_normal_spending_by_month", monthly_results, (16, 8)),
+            ("Normal Spending by Year", "create_normal_spending_by_year", yearly_results, (14, 8)),
+            ("Charity Spending by Month", "create_charity_spending_by_month", monthly_results, (16, 8)),
+            ("Charity Spending by Year", "create_charity_spending_by_year", yearly_results, (14, 8)),
+            ("Total Spending by Month", "create_total_spending_by_month", monthly_results, (16, 8)),
+            ("Total Spending by Year", "create_total_spending_by_year", yearly_results, (14, 8)),
+            ("All-Time Spending Categories", "create_spending_categories_chart", all_time_results['spending_by_category'], (14, 10)),
+            ("All-Time Income Categories", "create_income_categories_chart", all_time_results['income_by_category'], (14, 10))
+        ]
+        
+        styles = getSampleStyleSheet()
+        heading_style = ParagraphStyle(
+            'ChartHeading',
+            parent=styles['Heading2'],
+            fontSize=16,
+            spaceAfter=15,
+            textColor=colors.darkblue
+        )
+        
+        # Create charts directory for persistent storage
+        charts_dir = Path("pdf_charts")
+        charts_dir.mkdir(exist_ok=True)
+        
+        chart_files = []
+        
+        for i, (title, method_name, data, figsize) in enumerate(chart_configs):
+            try:
+                # Set larger figure size for PDF
+                original_figsize = plt.rcParams['figure.figsize']
+                plt.rcParams['figure.figsize'] = figsize
+                
+                # Create chart
+                method = getattr(self.viz_engine, method_name)
+                fig = method(data, title)
+                
+                if fig:
+                    # Save to persistent file
+                    chart_path = charts_dir / f"pdf_chart_{i}_{title.replace(' ', '_').replace('-', '_')}.png"
+                    fig.savefig(chart_path, format='png', dpi=150, bbox_inches='tight', 
+                              facecolor='white', edgecolor='none')
+                    chart_files.append((str(chart_path), title))
+                    plt.close(fig)
+                    
+                # Restore original figure size
+                plt.rcParams['figure.figsize'] = original_figsize
+                    
+            except Exception as e:
+                print(f"⚠️  Error generating chart {title}: {e}")
+                continue
+        
+        # Add charts to story
+        for chart_path, title in chart_files:
+            try:
+                story.append(PageBreak())
+                story.append(Paragraph(title, heading_style))
+                story.append(Spacer(1, 10))
+                
+                # Create image from file with error handling
+                if Path(chart_path).exists():
+                    img = Image(chart_path, width=7*inch, height=4*inch)
+                    story.append(img)
+                    story.append(Spacer(1, 20))
+                else:
+                    story.append(Paragraph(f"Chart not available: {title}", styles['Normal']))
+                    story.append(Spacer(1, 20))
+                
+            except Exception as e:
+                print(f"⚠️  Error adding chart {title} to PDF: {e}")
+                story.append(Paragraph(f"Error loading chart: {title}", styles['Normal']))
+                story.append(Spacer(1, 20))
+                continue
+        
+        return story
 
 
 class CSVReportGenerator(ReportGenerator):

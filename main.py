@@ -39,11 +39,14 @@ def main():
         
         print(f"\n✅ Analysis completed successfully!")
         print(f"📁 HTML Report: {reports['html']}")
-        print(f"   • Overview with key metrics")
-        print(f"   • Individual monthly reports")
-        print(f"   • Individual yearly reports")
-        print(f"   • Detailed category breakdowns")
+        print(f"   • Interactive web-based report")
+        print(f"   • Monthly and yearly breakdowns")
+        print(f"📁 PDF Report: {reports['pdf']}")
+        print(f"   • Professional printable format")
+        print(f"   • Large, detailed charts")
+        print(f"   • Comprehensive analysis")
         print(f"📁 CSV Report: {reports['csv']}")
+        print(f"   • Raw data export")
         print("🎉 Thank you for using the Financial Analysis System!")
         
     except KeyboardInterrupt:

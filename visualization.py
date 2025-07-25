@@ -61,7 +61,7 @@ class VisualizationEngine:
             if not months:
                 return None
             
-            fig, ax = plt.subplots(figsize=(12, 6))
+            fig, ax = plt.subplots(figsize=(16, 8))
             bars = ax.bar(months, normal_spending, color='#3498db', alpha=0.7)
             
             ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
@@ -97,7 +97,7 @@ class VisualizationEngine:
             if not years:
                 return None
             
-            fig, ax = plt.subplots(figsize=(10, 6))
+            fig, ax = plt.subplots(figsize=(14, 8))
             bars = ax.bar(years, normal_spending, color='#3498db', alpha=0.7)
             
             ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
@@ -132,7 +132,7 @@ class VisualizationEngine:
             if not months:
                 return None
             
-            fig, ax = plt.subplots(figsize=(12, 6))
+            fig, ax = plt.subplots(figsize=(16, 8))
             bars = ax.bar(months, charity_spending, color='#e74c3c', alpha=0.7)
             
             ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
@@ -168,7 +168,7 @@ class VisualizationEngine:
             if not years:
                 return None
             
-            fig, ax = plt.subplots(figsize=(10, 6))
+            fig, ax = plt.subplots(figsize=(14, 8))
             bars = ax.bar(years, charity_spending, color='#e74c3c', alpha=0.7)
             
             ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
@@ -202,7 +202,7 @@ class VisualizationEngine:
             if not months:
                 return None
             
-            fig, ax = plt.subplots(figsize=(12, 6))
+            fig, ax = plt.subplots(figsize=(16, 8))
             bars = ax.bar(months, total_spending, color='#9b59b6', alpha=0.7)
             
             ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
@@ -237,7 +237,7 @@ class VisualizationEngine:
             if not years:
                 return None
             
-            fig, ax = plt.subplots(figsize=(10, 6))
+            fig, ax = plt.subplots(figsize=(14, 8))
             bars = ax.bar(years, total_spending, color='#9b59b6', alpha=0.7)
             
             ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
@@ -269,7 +269,7 @@ class VisualizationEngine:
             categories = [item[0] for item in sorted_categories]
             amounts = [item[1] for item in sorted_categories]
             
-            fig, ax = plt.subplots(figsize=(10, max(8, len(categories) * 0.5)))
+            fig, ax = plt.subplots(figsize=(14, max(10, len(categories) * 0.6)))
             bars = ax.barh(categories, amounts, color='#34495e', alpha=0.7)
             
             ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
@@ -302,7 +302,7 @@ class VisualizationEngine:
             categories = [item[0] for item in sorted_categories]
             amounts = [item[1] for item in sorted_categories]
             
-            fig, ax = plt.subplots(figsize=(10, max(8, len(categories) * 0.5)))
+            fig, ax = plt.subplots(figsize=(14, max(10, len(categories) * 0.6)))
             bars = ax.barh(categories, amounts, color='#27ae60', alpha=0.7)
             
             ax.set_title(title, fontsize=16, fontweight='bold', pad=20)

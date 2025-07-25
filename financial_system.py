@@ -9,7 +9,7 @@ from datetime import datetime
 
 from data_loader import DataLoader
 from financial_analyzer import FinancialAnalyzer
-from report_generators import HTMLReportGenerator, CSVReportGenerator
+from report_generators import HTMLReportGenerator, CSVReportGenerator, PDFReportGenerator
 
 
 class FinancialReportSystem:
@@ -20,6 +20,7 @@ class FinancialReportSystem:
         self.analyzer = None
         self.html_report_generator = HTMLReportGenerator()
         self.csv_report_generator = CSVReportGenerator()
+        self.pdf_report_generator = PDFReportGenerator()
     
     def load_data_interactive(self):
         """Interactive data loading with user input."""
@@ -87,17 +88,30 @@ class FinancialReportSystem:
         
         return self.csv_report_generator.generate(self.analyzer, output_path)
     
+    def generate_pdf_report(self, output_path=None):
+        """Generate PDF report."""
+        if not self.analyzer:
+            raise ValueError("❌ No data loaded. Please load data first.")
+        
+        if not output_path:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_path = f"financial_analysis_{timestamp}.pdf"
+        
+        return self.pdf_report_generator.generate(self.analyzer, output_path)
+    
     def generate_all_reports(self, base_name=None):
-        """Generate both HTML and CSV reports."""
+        """Generate HTML, PDF and CSV reports."""
         if not base_name:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             base_name = f"financial_report_{timestamp}"
         
         html_path = self.generate_html_report(f"{base_name}.html")
+        pdf_path = self.generate_pdf_report(f"{base_name}.pdf")
         csv_path = self.generate_csv_report(f"{base_name}.csv")
         
         return {
             'html': html_path,
+            'pdf': pdf_path,
             'csv': csv_path
         }
     

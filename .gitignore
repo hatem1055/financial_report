@@ -42,8 +42,11 @@ venv.bak/
 *.xls
 *.xlsx
 *.csv
+*.pdf
 financial_report*.html
 charts/
+pdf_charts/
+
 currency_cache.json
 
 # Log files
